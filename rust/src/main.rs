@@ -94,7 +94,7 @@ fn handle_request(mut conn_stream: TcpStream) {
     for line in buf_reader {
         let line = line.unwrap().to_owned();
 
-        println!("line: {}", line);
+        // println!("line: {}", line);
 
         if line.is_empty() {
             request[2].push_str(&line);
@@ -105,10 +105,10 @@ fn handle_request(mut conn_stream: TcpStream) {
         }
     }
 
+    dbg!(&route);
     let response = match &route[..] {
-        "/" => "HTTP/1.1 200 OK\r\n\r\n".to_string(),
-        "/echo" => handle_route(&route),
-        "/files" => handle_files(&route),
+        "/" => "HTTP/1.1 200 OK\r\n\r\nHello from Rust Server!".to_string(),
+        _ if &route[0..6] == "/echo/" => handle_route(&route),
         "/user-agent" => handle_user_agent(&request[1]),
         _ => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
     };
@@ -147,35 +147,4 @@ fn handle_user_agent(headers: &str) -> String {
         "\r\n\r\n",
         header
     )
-}
-
-fn handle_files(route: &str) -> String {
-    let args: Vec<String> = env::args().collect();
-    if args[1] != "--directory" {
-        return "HTTP/1.1 404 Not Found\r\n\r\n".to_string();
-    }
-
-    let file = route.split('/').nth(2).unwrap();
-    let mut file_path = args[2].clone();
-    file_path.push_str(file);
-    dbg!(&file_path);
-
-    // let current_dir = env::current_dir().unwrap();
-    // let mut absolute_path = current_dir.to_str().unwrap().to_string();
-    // absolute_path.push_str(&file_path);
-    // dbg!(&absolute_path);
-
-    let requested_file = fs::read_to_string(file_path);
-    dbg!(&requested_file);
-
-    match requested_file {
-        Ok(file_content) => {
-            let file_len = file_content.len().to_string();
-            format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}",
-                file_len, file_content,
-            )
-        }
-        _ => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
-    }
 }
