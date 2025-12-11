@@ -18,7 +18,7 @@ func main() {
 	// drops listene on final of fn
 	defer listener.Close();
 
-	fmt.Println("Listening on :8080...")
+	fmt.Printf("Listening on %d...", PORT);
 
 	for {
 		// accept incoming requests
