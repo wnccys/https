@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// drops listene on final of fn
+	// drops listener on final of fn
 	defer listener.Close();
 
 	fmt.Printf("Listening on %d...", PORT);
@@ -23,6 +23,7 @@ func main() {
 	for {
 		// accept incoming requests
 		conn, err := listener.Accept()
+
 		if err != nil {
 			fmt.Println("Error accepting connection:", err)
 			continue
