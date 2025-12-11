@@ -31,9 +31,9 @@ fn decode_packet(type_: atom.Atom, packet: BitArray, options: List(a)) -> Result
 type Socket
 type ClientSocket
 
-fn start_server(handler: fn(Request(bytes_tree.BytesTree)) -> Response(bytes_tree.BytesTree)) {
-  let port = 8080
+const port = 8080
 
+fn start_server(handler: fn(Request(bytes_tree.BytesTree)) -> Response(bytes_tree.BytesTree)) {
   case gen_tcp_listen(port, []) {
     Ok(socket) -> {
       io.println("Socket is listening on port: " <> int.to_string(port))
@@ -53,7 +53,7 @@ fn accept_loop(socket: Socket, handler: fn(Request(bytes_tree.BytesTree)) -> Res
   case gen_tcp_accept(socket) {
     Ok(client_socket) -> {
       process.spawn(fn() {
-        gen_tcp_send(client_socket, bit_array.from_string("HTTP/1.1 200 OK\r\n\r\nhello"))
+        gen_tcp_send(client_socket, bit_array.from_string("HTTP/1.1 200 OK\r\n\r\nHello from gleam!"))
         gen_tcp_close(client_socket)
       })
       accept_loop(socket, handler)
@@ -67,12 +67,11 @@ fn accept_loop(socket: Socket, handler: fn(Request(bytes_tree.BytesTree)) -> Res
   }
 }
 
-fn handle_request(req: Request(String)) -> Response(String) { todo }
-
 pub fn main() {
-  let handler = fn(req) {
-    response.new(200)
-    |> response.set_body(bytes_tree.from_string("Hello, Gleam!"))
-  }
-  |> start_server()
+    let handler = fn(_req) {
+        response.new(200)
+        |> response.set_body(bytes_tree.from_string("Hello, Gleam!"))
+    }
+
+    handler |> start_server()
 }
