@@ -2,7 +2,6 @@ use std::io::{prelude::*, BufReader};
 use std::net::{TcpListener, TcpStream};
 use std::{
     env, fs,
-    path::Path,
     sync::{mpsc, Arc, Mutex},
     thread,
 };
@@ -24,11 +23,13 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
+#[allow(unused)]
 struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
 }
 
+#[allow(unused)]
 struct Worker {
     id: usize,
     thread: thread::JoinHandle<()>,
@@ -82,8 +83,8 @@ impl ThreadPool {
     }
 }
 
-fn handle_request(mut stream: TcpStream) {
-    let mut buf_reader = BufReader::new(&mut stream).lines();
+fn handle_request(mut conn_stream: TcpStream) {
+    let mut buf_reader = BufReader::new(&mut conn_stream).lines();
     // 0 => meta, 1 => headers, 2 => body;
     let mut request = [String::new(), String::new(), String::new()];
     request[0] = buf_reader.next().unwrap().unwrap();
@@ -106,14 +107,14 @@ fn handle_request(mut stream: TcpStream) {
 
     let response = match &route[..] {
         "/" => "HTTP/1.1 200 OK\r\n\r\n".to_string(),
-        _ if route.split('/').nth(1).unwrap() == "echo" => handle_route(&route),
-        _ if route.split('/').nth(1).unwrap() == "files" => handle_files(&route),
+        "/echo" => handle_route(&route),
+        "/files" => handle_files(&route),
         "/user-agent" => handle_user_agent(&request[1]),
         _ => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
     };
 
     dbg!(&response);
-    stream.write_all(response.as_bytes()).unwrap();
+    conn_stream.write_all(response.as_bytes()).unwrap();
     println!("response sent");
 }
 
